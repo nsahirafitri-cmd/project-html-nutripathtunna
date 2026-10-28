@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>NutriPath-Tunna — Personal Health Dashboard</title>
+<style>
+:root{
+  --green:#176b52; --green2:#238263; --mint:#e9f5ef; --mint2:#f5faf7;
+  --cream:#fbfaf4; --text:#24352f; --muted:#718078; --line:#e4ebe7;
+  --white:#fff; --warn:#f5e8bf; --shadow:0 8px 24px rgba(27,75,58,.07);
+}
+*{box-sizing:border-box} body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif;color:var(--text);background:#f7f9f7}
+button,input,select,textarea{font:inherit} button{cursor:pointer}
+.app{display:flex;min-height:100vh}
+.sidebar{width:235px;background:#fff;border-right:1px solid var(--line);padding:22px 14px;position:fixed;top:0;bottom:0;left:0;z-index:100;overflow-y:auto;overscroll-behavior:contain}
+.brand{display:flex;align-items:center;gap:9px;padding:4px 8px 22px;font-weight:800;color:#123f32}
+.logo{width:31px;height:31px;border-radius:50%;display:grid;place-items:center;background:var(--green);color:white;font-size:15px}
+.brand small{display:block;font-weight:500;color:#87948e;font-size:10px;margin-top:2px}
+.nav-title{font-size:10px;color:#9aa59f;text-transform:uppercase;letter-spacing:.12em;padding:8px 11px}
+.nav{display:grid;gap:4px}
+.nav button{border:0;background:transparent;color:#65746d;text-align:left;padding:10px 11px;border-radius:9px;display:flex;align-items:center;gap:10px;font-size:13px}
+.nav button:hover,.nav button.active{background:var(--mint);color:var(--green);font-weight:700}
+.nav button span{width:20px;text-align:center}
+.side-card{position:absolute;left:14px;right:14px;bottom:16px;background:#faf7ea;border:1px solid #eee6ca;border-radius:10px;padding:12px;font-size:11px;color:#766e57}
+.main{margin-left:235px;width:calc(100% - 235px);min-width:0;padding:24px 34px 50px}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+.crumb{font-size:12px;color:#8a968f}.profile{display:flex;align-items:center;gap:10px}
+.avatar{width:35px;height:35px;border-radius:50%;background:#d9eee5;color:var(--green);display:grid;place-items:center;font-weight:800}
+.page{display:none;max-width:1120px;margin:auto}.page.active{display:block}
+h1{font-size:26px;margin:0 0 7px;letter-spacing:-.02em} h2{font-size:17px;margin:0 0 13px} h3{font-size:14px;margin:0 0 8px}
+.subtitle{color:var(--muted);font-size:13px;margin-bottom:20px}
+.hero{background:linear-gradient(115deg,#e6f3ed,#d8eee3);border-radius:15px;padding:24px 28px;position:relative;overflow:hidden;margin-bottom:18px}
+.hero:after{content:"";position:absolute;width:230px;height:230px;border-radius:50%;right:-75px;top:-120px;background:rgba(35,130,99,.11)}
+.hero h1{font-size:22px}.hero p{font-size:12px;color:#52675e;max-width:640px}
+.row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.row2{display:grid;grid-template-columns:2fr 1fr;gap:14px}
+.card{background:white;border:1px solid var(--line);border-radius:13px;padding:18px;box-shadow:var(--shadow)}
+.stat{font-size:26px;font-weight:800;color:#173f34}.label{font-size:11px;color:var(--muted);margin-top:3px}.delta{font-size:10px;color:var(--green);margin-top:8px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}.pill,.btn{border:1px solid var(--line);background:white;color:#607068;border-radius:8px;padding:8px 12px;font-size:11px}.pill.active,.btn.primary{background:var(--green);color:white;border-color:var(--green)}
+.btn.secondary{background:var(--mint);color:var(--green);border-color:#d1e8dd}
+.field{display:grid;gap:6px;margin-bottom:13px}.field label{font-size:11px;color:#65736d}.field input,.field select,.field textarea{width:100%;padding:10px 11px;border:1px solid var(--line);border-radius:8px;background:#fcfdfc;outline:none;font-size:12px}.field input:focus,.field select:focus,.field textarea:focus{border-color:#7bb9a4}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.table{width:100%;border-collapse:collapse;font-size:11px}.table th,.table td{text-align:left;padding:11px;border-bottom:1px solid var(--line)}.table th{color:#78857f;font-weight:600}
+.progress{height:8px;background:#edf2ef;border-radius:99px;overflow:hidden}.progress i{display:block;height:100%;background:var(--green);border-radius:99px}
+.bar-chart{height:180px;display:flex;align-items:flex-end;gap:12px;padding:10px 8px 0;border-bottom:1px solid var(--line)}.bar{flex:1;background:#8fc8b1;border-radius:7px 7px 0 0;min-height:12px}.bar em{display:block;text-align:center;font-style:normal;font-size:9px;color:#7b8781;margin-top:calc(100% + 7px)}
+.linechart{height:180px;position:relative;border-bottom:1px solid var(--line);overflow:hidden}.linechart svg{width:100%;height:100%}.legend{display:flex;gap:18px;font-size:10px;color:#718078;margin-top:10px}
+.food{display:flex;justify-content:space-between;gap:12px;align-items:center;border:1px solid var(--line);padding:12px;border-radius:10px;margin-bottom:8px}.food strong{font-size:12px}.food small{display:block;color:#8a958f;font-size:10px;margin-top:3px}
+.check{display:flex;align-items:center;gap:9px;padding:10px 0;border-bottom:1px solid var(--line);font-size:12px}.check input{accent-color:var(--green)}
+.ai{background:linear-gradient(135deg,#eef8f3,#f9fbf9);border:1px solid #d9ebe2}.chat{height:300px;overflow:auto;padding:8px;background:#fbfdfb;border:1px solid var(--line);border-radius:10px}.msg{max-width:78%;padding:10px 12px;border-radius:11px;margin:8px 0;font-size:11px;line-height:1.5}.bot{background:white;border:1px solid var(--line)}.me{margin-left:auto;background:var(--green);color:white}
+.kpi{display:flex;justify-content:space-between;align-items:center;margin:10px 0;font-size:11px}.tag{font-size:9px;padding:4px 7px;border-radius:99px;background:var(--mint);color:var(--green)}
+.toast{position:fixed;right:25px;bottom:22px;background:#173f34;color:white;padding:11px 14px;border-radius:9px;font-size:11px;opacity:0;transform:translateY(10px);transition:.25s;z-index:50}.toast.show{opacity:1;transform:none}
+footer{margin-top:35px;color:#98a29d;font-size:10px;text-align:center}
+/* Responsive: desktop sidebar + touch-friendly horizontal menu on phones/tablets */
+html,body{min-width:0;width:100%;max-width:100%;overflow-x:hidden}
+.app{min-width:0;width:100%;max-width:100%}
+.sidebar{width:235px}
+.main{margin-left:235px;width:calc(100% - 235px);min-width:0}
+.row,.grid3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.row2{grid-template-columns:minmax(0,2fr) minmax(0,1fr)}
+.grid2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.card,.page,.hero{min-width:0}
+img,svg,video,canvas{max-width:100%}
+input,select,textarea,button{max-width:100%}
+@media (max-width:900px){
+  .sidebar{position:fixed;left:0;right:0;top:0;bottom:auto;width:100%;height:auto;max-height:34vh;overflow:visible;padding:9px 10px 7px;z-index:100;border-right:0;border-bottom:1px solid var(--line);box-shadow:0 4px 14px rgba(27,75,58,.06)}
+  .brand{padding:2px 4px 7px}
+  .nav-title,.side-card{display:none}
+  .nav{display:flex;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;gap:5px;padding:0 0 3px;scrollbar-width:thin;scrollbar-color:#c9ddd3 transparent;-webkit-overflow-scrolling:touch;touch-action:pan-x}
+  .nav::-webkit-scrollbar{height:3px}
+  .nav button{white-space:nowrap;min-height:38px;padding:9px 12px;font-size:12px;flex:0 0 auto;touch-action:manipulation}
+  .main{margin-left:0;width:100%;padding:112px 16px 35px}
+  .topbar{margin-bottom:18px}
+  .page{max-width:100%}
+  .row,.grid3{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .row2{grid-template-columns:minmax(0,1fr)}
+  .grid2{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:600px){
+  .sidebar{padding:8px 8px 6px}
+  .brand{font-size:13px}
+  .brand small{font-size:9px}
+  .nav button{font-size:11px;padding:8px 10px;min-height:40px}
+  .main{padding:112px 12px 30px}
+  h1{font-size:22px;line-height:1.25}
+  .hero{padding:18px}
+  .hero h1{font-size:20px}
+  .row,.grid3,.grid2{grid-template-columns:minmax(0,1fr)}
+  .card{padding:14px}
+  .topbar{align-items:flex-start}
+  #loginScreen{padding:14px}
+  #loginScreen > div{width:min(100%,380px)!important;padding:24px!important}
+  .table{font-size:10px;display:block;overflow-x:auto;white-space:nowrap;max-width:100%}
+  .chat{height:260px}
+  .pdf-nutrients{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .nutrition-date{flex-wrap:wrap}
+  .nutrition-date input[type=date]{max-width:100%!important;flex:1}
+}
+@media (max-width:360px){
+  .main{padding-left:9px;padding-right:9px}
+  .nav button{font-size:10px;padding:8px}
+  .brand .logo{width:28px;height:28px}
+  .hero p{font-size:11px}
+}
+
+/* Nutrition page inspired by the supplied PDF */
+.nutrition-date{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--line);background:#fff;border-radius:14px;padding:10px 14px;margin:12px 0 14px}.nutrition-date .date-center{text-align:center;flex:1}.nutrition-date .date-center b{display:block;font-size:12px}.nutrition-date .date-center span{font-size:10px;color:var(--muted)}.icon-btn{border:1px solid var(--line);background:#fff;border-radius:50%;width:32px;height:32px;color:var(--green);font-weight:800}.searchbox{position:relative}.searchbox input{padding-left:38px!important}.searchbox .search-icon{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:#83918b;font-size:14px}.food-list{max-height:330px;overflow:auto;padding-right:3px}.food-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 4px;border-top:1px solid #eef2ef}.food-row:first-child{border-top:0}.food-info{min-width:0}.food-info strong{display:block;font-size:12px}.food-info small{display:block;font-size:10px;color:var(--muted);margin-top:3px}.food-info .food-cat{display:inline-block;margin-top:5px;padding:3px 7px;border-radius:99px;background:#edf7f2;color:var(--green);font-size:9px}.add-food-btn{border:0;background:var(--green);color:#fff;border-radius:8px;padding:7px 11px;font-size:10px;white-space:nowrap}.nutrition-summary{display:grid;grid-template-columns:1fr 1fr;gap:12px}.nutrition-summary .summary-item{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line);font-size:11px}.empty-journal{border:1px dashed #dbe5df;border-radius:14px;padding:30px 18px;text-align:center;color:var(--muted);font-size:11px}.empty-journal .empty-icon{font-size:25px;margin-bottom:8px}.diversity-row{display:flex;align-items:center;justify-content:space-between;background:#f6faf8;border-radius:10px;padding:10px 12px;margin-top:7px}.diversity-row b{font-size:11px}.diversity-row span{font-size:10px;color:var(--muted)}.diversity-row button{border:0;background:transparent;color:#91a099}.custom-food{display:none;border-top:1px solid var(--line);margin-top:14px;padding-top:14px}.custom-food.show{display:block}.food-count{font-size:10px;color:var(--muted);margin-top:4px}
+@media(max-width:600px){.nutrition-date{padding:9px}.nutrition-summary{grid-template-columns:1fr}.food-list{max-height:none}.nutrition-date .date-center b{font-size:11px}}
+
+
+/* Additional Meal Planner and Healthy Habits tools based on the supplied PDFs */
+.pdf-addition{display:grid;gap:14px;margin-top:16px}
+.pdf-datebar{display:flex;align-items:center;gap:12px}.pdf-datebar .date-center{flex:1;text-align:center}.pdf-datebar .date-center b{display:block;font-size:12px}.pdf-datebar .date-center span{display:block;color:var(--muted);font-size:10px;margin-top:3px}.pdf-datebar input[type=date]{max-width:145px;border:1px solid var(--line);padding:8px;border-radius:20px;color:var(--green);font-size:11px;background:white}
+.icon-btn{border:1px solid var(--line);background:#fff;border-radius:50%;width:34px;height:34px;color:var(--green);font-weight:800;font-size:20px;cursor:pointer;flex-shrink:0}
+.empty-state{border:1px dashed var(--line);border-radius:10px;padding:24px 14px;text-align:center;color:var(--muted);font-size:11px;background:#fcfdfc}
+.planned-list{display:grid;gap:8px}.planned-row{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:11px;border:1px solid var(--line);border-radius:10px;font-size:11px}.planned-row button{border:0;background:#f8e9e6;color:#9a4738;border-radius:8px;padding:6px 9px;cursor:pointer}
+.meal-cats{flex-wrap:wrap;margin:12px 0 18px}.pdf-meal-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.pdf-meal-card{border:1px solid var(--line);border-radius:15px;padding:14px;background:white;min-width:0}.pdf-meal-card h3{font-size:13px;line-height:1.4;margin:10px 0 5px}.pdf-meal-card p{font-size:10px;color:var(--muted);line-height:1.5}.pdf-meal-tags{display:flex;flex-wrap:wrap;gap:5px}.pdf-meal-tags span{font-size:9px;background:#f0f7f3;color:var(--green);border-radius:20px;padding:4px 7px}.pdf-nutrients{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;background:#f6faf8;border-radius:9px;padding:9px 5px;margin:10px 0;text-align:center}.pdf-nutrients b{display:block;font-size:11px}.pdf-nutrients span{display:block;font-size:8px;color:var(--muted);margin-bottom:4px}.pdf-meal-card .btn{width:100%;font-size:10px;padding:9px}.pdf-habit-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.pdf-habit-kpis .card{margin:0}.pdf-habit-kpis .stat{font-size:23px;margin:8px 0}.pdf-habit-kpis .label{line-height:1.5}.pdf-water-chart{height:150px;display:flex;align-items:flex-end;gap:10px;padding:12px 8px;border-bottom:1px solid var(--line);background:repeating-linear-gradient(to top,transparent 0,transparent 35px,#eaf0ed 36px)}.pdf-water-bar{flex:1;min-width:0;border-radius:7px 7px 2px 2px;background:#9acbb7;position:relative;max-width:55px}.pdf-water-bar span{position:absolute;bottom:-21px;left:0;right:0;text-align:center;font-size:9px;color:var(--muted)}.habit-calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin:12px 0}.habit-calendar .day-name{text-align:center;font-size:9px;color:var(--muted);padding:5px 0}.habit-calendar button{border:1px solid transparent;background:#f4f8f6;border-radius:9px;min-height:35px;font-size:10px;color:#51645a;cursor:pointer}.habit-calendar button.selected{border-color:var(--green);background:white;box-shadow:inset 0 0 0 1px var(--green)}.habit-calendar button.done{background:#dcefe5}.habit-note{background:#f1f5f3!important}.habit-note p{margin-bottom:0}
+@media(max-width:700px){.pdf-meal-grid{grid-template-columns:1fr}.pdf-habit-kpis{grid-template-columns:1fr}.pdf-datebar{flex-wrap:wrap}.pdf-datebar input[type=date]{max-width:100%;flex:1}.pdf-nutrients span{font-size:7px}}
+
+</style>
+<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#176b52"><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+</head>
+<body>
+<div id="loginScreen" style="position:fixed;inset:0;background:#f7f9f7;z-index:999;display:grid;place-items:center;padding:20px">
+  <div style="width:380px;background:#fff;border:1px solid #e4ebe7;border-radius:18px;padding:32px;box-shadow:0 12px 40px rgba(27,75,58,.10)">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px"><div class="logo">N</div><div style="font-weight:800;color:#123f32;font-size:18px">NutriPath-Tunna<small style="display:block;font-weight:500;color:#87948e;font-size:10px;margin-top:2px">Personal Health Companion</small></div></div>
+    <h1 style="font-size:24px">Selamat datang 👋</h1>
+    <p style="color:#718078;font-size:13px;line-height:1.5">Masukkan nama dan Gmail kamu. Gmail dapat diganti kapan saja di Profil & Pengaturan.</p>
+    <div class="field"><label>Nama kamu</label><input id="loginName" placeholder="Contoh: Aisyah" autocomplete="name"></div>
+    <div class="field"><label>Gmail</label><input id="loginEmail" type="email" placeholder="nama@gmail.com" autocomplete="email"></div>
+    <button class="btn primary" style="width:100%;padding:11px" onclick="loginUser()">Masuk ke NutriPath-Tunna</button>
+  </div>
+</div>
+<div class="app">
+<aside class="sidebar">
+  <div class="brand"><div class="logo">N</div><div>NutriPath-Tunna<small>Personal Health Companion</small></div></div>
+  <div class="nav-title">Menu utama</div>
+  <nav class="nav" id="nav">
+    <button class="active" data-page="dashboard"><span>⌂</span>Beranda</button>
+    <button data-page="body"><span>◉</span>My Body</button>
+    <button data-page="nutrition"><span>◒</span>My Nutrition</button>
+    <button data-page="meal"><span>▦</span>Meal Planner</button>
+    <button data-page="habits"><span>✓</span>Healthy Habits</button>
+    <button data-page="ai"><span>✦</span>Health AI</button>
+    <button data-page="education"><span>▤</span>Pusat Edukasi</button>
+    <button data-page="schedule"><span>◷</span>Jadwal</button>
+     <button data-page="activity"><span>📍</span>Peta & Aktivitas</button>
+     <button data-page="music"><span>♫</span>Musik & Relaksasi</button>
+     <button data-page="reminders"><span>🔔</span>Pengingat Aktivitas</button>
+    <button data-page="profile"><span>○</span>Profil & Pengaturan</button>
+  </nav>
+  <div class="side-card"><b>Tip hari ini</b><br><br>Catat kondisi tubuh secara rutin agar pola kesehatanmu lebih mudah dipantau.</div>
+</aside>
+
+<main class="main">
+<div class="topbar"><div class="crumb" id="crumb">Beranda</div><div class="profile"><span id="topName">Nayla</span><div class="avatar" id="avatar">N</div></div></div>
+
+<section class="page active" id="dashboard">
+  <div class="hero"><h1>Selamat datang di NutriPath!</h1><p>Pantau kesehatan, nutrisi, kebiasaan, dan aktivitas harianmu dalam satu tempat.</p><div class="toolbar"><button class="btn primary" onclick="go('body')">Cek kondisi tubuh</button><button class="btn secondary" onclick="go('meal')">Atur meal plan</button></div></div>
+  <div class="row">
+    <div class="card"><div class="label">Berat badan</div><div class="stat" id="dashWeight">58.4 kg</div><div class="delta">↓ 0.6 kg dari minggu lalu</div></div>
+    <div class="card"><div class="label">Kalori hari ini</div><div class="stat">1,480</div><div class="delta">43% dari target harian</div></div>
+    <div class="card"><div class="label">Kebiasaan aktif</div><div class="stat">7 / 9</div><div class="delta">+2 dari kemarin</div></div>
+  </div>
+  <div class="row2" style="margin-top:14px">
+    <div class="card"><h2>Perkembangan berat badan</h2><div class="linechart"><svg viewBox="0 0 600 180" preserveAspectRatio="none"><polyline points="0,55 90,42 180,64 270,35 360,90 450,150 530,140 600,125" fill="none" stroke="#238263" stroke-width="4"/><polyline points="0,55 90,42 180,64 270,35 360,90 450,150 530,140 600,125 600,180 0,180" fill="#e9f5ef" stroke="none"/></svg></div><div class="legend"><span>● Berat badan</span><span>7 hari terakhir</span></div></div>
+    <div class="card"><h2>Ringkasan hari ini</h2><div class="kpi"><span>Air minum</span><b>5 / 8 gelas</b></div><div class="progress"><i style="width:62%"></i></div><div class="kpi"><span>Langkah</span><b>4,320</b></div><div class="progress"><i style="width:54%"></i></div><div class="kpi"><span>Tidur</span><b>7j 10m</b></div><div class="progress"><i style="width:89%"></i></div></div>
+  </div>
+</section>
+
+<section class="page" id="body">
+  <h1>My Body</h1><div class="subtitle">Catat dan pantau data tubuhmu secara berkala.</div>
+  <div class="grid2">
+    <div class="card"><h2>Data tubuh</h2>
+      <div class="field"><label>Berat badan (kg)</label><input id="weight" type="number" value="58.4" step=".1"></div>
+      <div class="field"><label>Tinggi badan (cm)</label><input id="height" type="number" value="163"></div>
+      <div class="field"><label>Usia</label><input id="age" type="number" value="20"></div>
+      <div class="field"><label>Jenis kelamin</label><select><option>Perempuan</option><option>Laki-laki</option></select></div>
+      <button class="btn primary" onclick="calculateBMI()">Simpan & hitung</button>
+    </div>
+    <div class="card"><h2>Ringkasan</h2><div class="stat" id="bmi">BMI 22.0</div><div class="label" id="bmiText">Dalam rentang normal berdasarkan perhitungan BMI.</div><hr style="border:0;border-top:1px solid var(--line);margin:20px 0"><div class="kpi"><span>Berat</span><b id="sumWeight">58.4 kg</b></div><div class="kpi"><span>Tinggi</span><b id="sumHeight">163 cm</b></div><div class="kpi"><span>Target aktivitas</span><b>8.000 langkah</b></div></div>
+  </div>
+</section>
+
+<section class="page" id="nutrition">
+  <h1>My Nutrition</h1>
+  <div class="subtitle">Catat makanan dan minuman hari ini, lalu lihat gambaran keseimbangan gizinya. Nilai gizi adalah perkiraan, dan satu hari pencatatan tidak menentukan status gizi.</div>
+
+  <div class="nutrition-date">
+    <button class="icon-btn" onclick="changeNutritionDate(-1)" aria-label="Hari sebelumnya">‹</button>
+    <div class="date-center"><b>Hari ini</b><span id="nutritionDateText"></span></div>
+    <button class="icon-btn" onclick="changeNutritionDate(1)" aria-label="Hari berikutnya">›</button>
+    <input id="nutritionDatePicker" type="date" onchange="setNutritionDate(this.value)" style="max-width:120px;border:1px solid var(--line);border-radius:8px;padding:7px;font-size:10px">
+  </div>
+
+  <div class="card">
+    <h2>Cari makanan</h2>
+    <p class="label">Nilai gizi mengacu pada perkiraan per 100 g. Nilai bisa berbeda mengikuti porsi, minyak, bumbu, dan cara memasak.</p>
+    <div class="field searchbox" style="margin:12px 0 10px"><span class="search-icon">⌕</span><input id="foodSearch" oninput="renderFoodList()" placeholder="Misalnya: nasi, tempe, kangkung" autocomplete="off"></div>
+    <div class="toolbar" id="foodCategories">
+      <button class="pill active" onclick="setFoodCategory('Semua',this)">Semua</button>
+      <button class="pill" onclick="setFoodCategory('Makanan pokok',this)">Makanan pokok</button>
+      <button class="pill" onclick="setFoodCategory('Lauk-pauk hewani',this)">Lauk-pauk hewani</button>
+      <button class="pill" onclick="setFoodCategory('Lauk-pauk nabati',this)">Lauk-pauk nabati</button>
+      <button class="pill" onclick="setFoodCategory('Sayur',this)">Sayur</button>
+      <button class="pill" onclick="setFoodCategory('Buah',this)">Buah</button>
+      <button class="pill" onclick="setFoodCategory('Minuman & camilan',this)">Minuman & camilan</button>
+    </div>
+    <div class="food-list" id="foodList"></div>
+    <button class="btn secondary" style="margin-top:12px" onclick="toggleCustomFood()">＋ Tambah makanan sendiri</button>
+    <div class="custom-food" id="customFoodBox">
+      <div class="grid2">
+        <div class="field"><label>Nama makanan</label><input id="customFoodName" placeholder="Contoh: Nasi goreng"></div>
+        <div class="field"><label>Kategori</label><select id="customFoodCat"><option>Makanan pokok</option><option>Lauk-pauk hewani</option><option>Lauk-pauk nabati</option><option>Sayur</option><option>Buah</option><option>Minuman & camilan</option></select></div>
+        <div class="field"><label>Energi (kcal)</label><input id="customFoodKcal" type="number" min="0" placeholder="250"></div>
+        <div class="field"><label>Protein (g)</label><input id="customFoodProtein" type="number" min="0" step="0.1" placeholder="8"></div>
+      </div>
+      <button class="btn primary" onclick="addCustomFood()">Simpan makanan</button>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h2>Jurnal makanan</h2>
+    <div id="journalEmpty" class="empty-journal"><div class="empty-icon">🍴</div><b>Jurnal hari ini masih kosong</b><div style="margin-top:6px">Cari makanan di panel di atas, lalu tekan Tambah. Tidak perlu menimbang tepat — perkiraan porsi sudah cukup.</div></div>
+    <div id="journalList"></div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h2>Tercatat hari ini</h2><p class="label">Ringkasan akan berubah otomatis setelah kamu menambahkan makanan.</p>
+    <div class="nutrition-summary">
+      <div>
+        <div class="summary-item"><span>Energi</span><b id="sumKcal">0 kcal</b></div>
+        <div class="summary-item"><span>Protein</span><b id="sumProtein">0,0 g</b></div>
+        <div class="summary-item"><span>Karbohidrat</span><b id="sumCarb">0,0 g</b></div>
+      </div>
+      <div>
+        <div class="summary-item"><span>Lemak</span><b id="sumFat">0,0 g</b></div>
+        <div class="summary-item"><span>Serat</span><b id="sumFiber">0,0 g</b></div>
+        <div class="summary-item"><span>Jumlah item</span><b id="sumItems">0</b></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h2>Keragaman makanan</h2>
+    <p class="label">Isi Piringku menyarankan setengah piring berisi sayur dan buah. Yang dinilai di sini adalah keragaman, bukan jumlah kalori.</p>
+    <div id="diversityList"></div>
+    <p class="food-count">Catatan akan tersimpan di browser perangkat ini dan dapat berubah saat kamu mengganti tanggal.</p>
+  </div>
+</section>
+
+<section class="page" id="meal">
+  <h1>Meal Planner</h1><div class="subtitle">Susun rencana makan sederhana untuk beberapa hari ke depan.</div>
+  <div class="card"><div class="toolbar"><button class="pill active">Minggu ini</button><button class="pill">Senin</button><button class="pill">Selasa</button><button class="pill">Rabu</button><button class="pill">Kamis</button><button class="pill">Jumat</button><button class="pill">Sabtu</button></div>
+  <table class="table"><thead><tr><th>Waktu</th><th>Menu</th><th>Catatan</th><th></th></tr></thead><tbody>
+  <tr><td>07.00</td><td><b>Oatmeal + buah</b></td><td>Karbohidrat & serat</td><td><span class="tag">320 kcal</span></td></tr>
+  <tr><td>12.00</td><td><b>Nasi, ayam, sayur</b></td><td>Protein + sayuran</td><td><span class="tag">540 kcal</span></td></tr>
+  <tr><td>16.00</td><td><b>Buah + yogurt</b></td><td>Snack</td><td><span class="tag">180 kcal</span></td></tr>
+  <tr><td>19.00</td><td><b>Sup sayur + telur</b></td><td>Makan malam ringan</td><td><span class="tag">440 kcal</span></td></tr>
+  </tbody></table></div>
+
+  <!-- Materi tambahan dari PDF Meal Planner: fitur rencana harian, kategori menu, dan daftar belanja -->
+  <div class="pdf-addition">
+    <div class="card"><div class="pdf-datebar"><button class="icon-btn" onclick="shiftMealDate(-1)">‹</button><div class="date-center"><b id="mealDateTitle">Hari ini</b><span id="mealDateLabel"></span></div><button class="icon-btn" onclick="shiftMealDate(1)">›</button><input type="date" id="mealDatePicker" aria-label="Pilih tanggal" onchange="setMealDate(this.value)"></div></div>
+    <div class="card"><h2>Rencana hari ini</h2><p class="label">Menu yang sudah kamu pilih untuk tanggal ini</p><div id="plannedMeals" class="planned-list"><div class="empty-state">Belum ada menu untuk hari ini. Pilih ide menu di bawah, lalu tambahkan ke rencana.</div></div></div>
+    <div class="card"><h2>🛒 Daftar belanja</h2><p class="label" id="shoppingDateLabel">Digabungkan dari rencana hari ini</p><div id="shoppingList" class="empty-state">Daftar belanja terisi otomatis setelah kamu menambahkan menu ke rencana.</div></div>
+    <div class="card"><div class="label" style="font-weight:800;letter-spacing:.08em">KATEGORI MENU</div><div class="toolbar meal-cats" id="mealCats"><button class="pill active" data-cat="Semua" onclick="filterMeal('Semua',this)">Semua</button><button class="pill" data-cat="Menu hemat" onclick="filterMeal('Menu hemat',this)">Menu hemat</button><button class="pill" data-cat="Tinggi serat" onclick="filterMeal('Tinggi serat',this)">Tinggi serat</button><button class="pill" data-cat="Protein beragam" onclick="filterMeal('Protein beragam',this)">Protein beragam</button><button class="pill" data-cat="Mendukung aktivitas" onclick="filterMeal('Mendukung aktivitas',this)">Mendukung aktivitas</button><button class="pill" data-cat="Menu keluarga" onclick="filterMeal('Menu keluarga',this)">Menu keluarga</button><button class="pill" data-cat="Vegetarian" onclick="filterMeal('Vegetarian',this)">Vegetarian</button></div><h2>☷ Ide menu (<span id="mealCount">8</span>)</h2><div class="pdf-meal-grid" id="mealIdeas"></div></div>
+  </div>
+
+</section>
+
+<section class="page" id="habits">
+  <h1>Healthy Habits</h1><div class="subtitle">Bangun kebiasaan sehat dan tandai progres setiap hari.</div>
+  <div class="grid2"><div class="card"><h2>Kebiasaan hari ini</h2>
+    <label class="check"><input type="checkbox" checked> Minum air yang cukup</label><label class="check"><input type="checkbox" checked> Sarapan</label><label class="check"><input type="checkbox"> Jalan kaki / aktivitas fisik</label><label class="check"><input type="checkbox" checked> Konsumsi sayur atau buah</label><label class="check"><input type="checkbox"> Tidur sesuai target</label><label class="check"><input type="checkbox" checked> Batasi minuman manis</label>
+  </div><div class="card"><h2>Progress minggu ini</h2><div class="bar-chart"><div class="bar" style="height:55%"></div><div class="bar" style="height:72%"></div><div class="bar" style="height:85%"></div><div class="bar" style="height:62%"></div><div class="bar" style="height:90%"></div><div class="bar" style="height:75%"></div><div class="bar" style="height:93%"></div></div><p class="label">Rata-rata kebiasaan tercapai: <b>76%</b></p></div></div>
+
+  <!-- Materi tambahan dari PDF Healthy Habits: catatan air, aktivitas, tidur, grafik, dan kalender -->
+  <div class="pdf-addition">
+    <div class="card"><div class="pdf-datebar"><button class="icon-btn" onclick="shiftHabitDate(-1)">‹</button><div class="date-center"><b>Hari ini</b><span id="habitDateLabel"></span></div><button class="icon-btn" onclick="shiftHabitDate(1)">›</button><input type="date" id="habitDatePicker" aria-label="Pilih tanggal" onchange="setHabitDate(this.value)"></div></div>
+    <div class="pdf-habit-kpis"><div class="card"><div class="label">RATA-RATA AIR (7 HARI) 💧</div><div class="stat" id="avgWater">—</div><p class="label">Perkiraan kebutuhan 2,0 L/hari</p></div><div class="card"><div class="label">RATA-RATA TIDUR (7 HARI) 🌙</div><div class="stat" id="avgSleep">—</div><p class="label">Target umum 8 jam</p></div><div class="card"><div class="label">AKTIVITAS (7 HARI) 🏃</div><div class="stat"><span id="avgActivity">0</span> <small>menit</small></div><p class="label">0 hari dengan minimal 30 menit</p></div></div>
+    <div class="card"><h2>Catat kebiasaan hari ini</h2><p class="label">Isi bagian yang sempat kamu pantau saja. Tidak apa-apa bila satu bagian kosong.</p>
+      <div class="field"><label>💧 Air minum (ml)</label><div class="toolbar"><span class="tag" id="waterTotal">0 ml / 2,0 L</span><button class="pill" onclick="addWater(200)">+200 ml</button><button class="pill" onclick="addWater(250)">+250 ml</button><button class="pill" onclick="addWater(500)">+500 ml</button><button class="pill" onclick="resetWater()">Reset</button></div><input id="waterInput" type="number" min="0" placeholder="Masukkan total air (ml)" onchange="saveHabitEntry()"></div>
+      <div class="field"><label>🏃 Aktivitas fisik (menit)</label><div class="toolbar"><button class="pill" onclick="addActivity(15)">+15 menit</button><button class="pill" onclick="addActivity(30)">+30 menit</button><button class="pill" onclick="addActivity(45)">+45 menit</button><button class="pill" onclick="addActivity(60)">+60 menit</button><button class="pill" onclick="resetActivity()">Reset</button></div><input id="activityInput" type="number" min="0" placeholder="0" onchange="saveHabitEntry()"></div>
+      <div class="field"><label>Durasi tidur (jam)</label><input id="sleepInput" type="number" min="0" max="24" step=".5" placeholder="Misalnya 7.5" onchange="saveHabitEntry()"></div>
+      <div class="field"><label>Catatan (opsional)</label><input id="habitNote" placeholder="Misalnya: tidur agak larut karena tugas" onchange="saveHabitEntry()"></div><button class="btn primary" onclick="saveHabitEntry(true)">Simpan kebiasaan</button>
+    </div>
+    <div class="card"><h2>Air minum sepekan</h2><p class="label">Garis putus-putus menunjukkan perkiraan kebutuhan harianmu</p><div class="bar-chart pdf-water-chart" id="waterChart"></div></div>
+    <div class="card"><h2>Kalender kebiasaan</h2><p class="label">Empat minggu terakhir. Klik tanggal untuk melihat atau mengubah catatannya.</p><div class="habit-calendar" id="habitCalendar"></div><div class="label">🟢 air tercapai &nbsp; ◉ sebagian &nbsp; ○ ada catatan lain</div></div>
+    <div class="card habit-note"> <b>Tidak ada target yang wajib penuh</b><p class="label">Kebiasaan terbentuk dari pengulangan yang realistis. Bila satu hari terlewat, cukup lanjutkan besok tanpa perlu menebusnya.</p></div>
+  </div>
+
+</section>
+
+<section class="page" id="ai">
+  <h1>Health AI</h1><div class="subtitle">Tanya seputar kebiasaan dan informasi kesehatan umum.</div>
+  <div class="card ai"><div class="chat" id="chat"><div class="msg bot">Halo! Saya Health AI. Ceritakan pertanyaan kesehatan umum yang ingin kamu bahas.</div></div><div style="display:flex;gap:8px;margin-top:10px"><input id="chatInput" class="field" style="margin:0;flex:1;padding:10px;border:1px solid var(--line);border-radius:8px" placeholder="Ketik pertanyaan..."><button class="btn primary" onclick="sendChat()">Kirim</button></div></div>
+</section>
+
+<section class="page" id="education">
+  <h1>Pusat Edukasi</h1><div class="subtitle">Pilih topik untuk membuka materi edukasi kesehatan.</div>
+  <div class="grid3">
+    <div class="card"><h3>🥗 Nutrisi seimbang</h3><p class="label">Kenali komponen makanan dan cara menyusun piring makan yang beragam.</p><button class="btn secondary" onclick="openEducation('nutrisi')">Baca materi</button></div>
+    <div class="card"><h3>💧 Hidrasi</h3><p class="label">Pahami pentingnya cairan dan kebiasaan minum.</p><button class="btn secondary" onclick="openEducation('hidrasi')">Baca materi</button></div>
+    <div class="card"><h3>😴 Tidur sehat</h3><p class="label">Bangun rutinitas tidur yang konsisten dan nyaman.</p><button class="btn secondary" onclick="openEducation('tidur')">Baca materi</button></div>
+    <div class="card"><h3>🏃 Aktivitas fisik</h3><p class="label">Tambahkan gerak aktif sesuai kemampuan dan kondisi tubuh.</p><button class="btn secondary" onclick="openEducation('aktivitas')">Baca materi</button></div>
+    <div class="card"><h3>🧠 Kesehatan mental</h3><p class="label">Kenali stres dan pentingnya dukungan sosial.</p><button class="btn secondary" onclick="openEducation('mental')">Baca materi</button></div>
+    <div class="card"><h3>🩺 Pemeriksaan rutin</h3><p class="label">Ketahui manfaat pemeriksaan kesehatan secara berkala.</p><button class="btn secondary" onclick="openEducation('pemeriksaan')">Baca materi</button></div>
+    <div class="card"><h3>⚖️ Kategori Indeks Massa Tubuh (IMT)</h3><p class="label">Kenali kategori IMT sebagai gambaran awal status berat badan.</p><button class="btn secondary" onclick="openEducation('imt')">Baca materi</button></div>
+  </div>
+  <div class="card" id="educationContent" style="display:none;margin-top:16px">
+    <h2 id="educationTitle"></h2><div id="educationText" style="font-size:12px;line-height:1.7;color:#52675e;white-space:pre-line"></div>
+  </div>
+</section>
+
+<section class="page" id="schedule">
+  <h1>Jadwal</h1><div class="subtitle">Atur dan tambahkan jadwal aktivitas kesehatanmu. Jadwal tersimpan di perangkat ini.</div>
+  <div class="card">
+    <div class="toolbar"><button class="btn primary" onclick="toggleScheduleForm()">＋ Tambah jadwal</button></div>
+    <form id="scheduleForm" style="display:none;background:#f7fbf8;border:1px solid var(--line);border-radius:12px;padding:15px;margin-bottom:18px" onsubmit="addSchedule(event)">
+      <h2 id="scheduleFormTitle">Tambah jadwal baru</h2>
+      <div class="grid2">
+        <div class="field"><label for="scheduleTime">Waktu</label><input id="scheduleTime" type="time" required></div>
+        <div class="field"><label for="scheduleActivity">Kegiatan</label><input id="scheduleActivity" type="text" placeholder="Contoh: Minum air putih" maxlength="100" required></div>
+        <div class="field"><label for="scheduleFrequency">Frekuensi</label><select id="scheduleFrequency"><option>Setiap hari</option><option>Senin–Jumat</option><option>Sabtu–Minggu</option><option>Senin</option><option>Selasa</option><option>Rabu</option><option>Kamis</option><option>Jumat</option><option>Sabtu</option><option>Minggu</option><option>Satu kali</option></select></div>
+        <div class="field"><label for="scheduleDate">Tanggal (opsional)</label><input id="scheduleDate" type="date"></div>
+      </div>
+      <div class="toolbar"><button class="btn primary" type="submit">Simpan jadwal</button><button class="btn" type="button" onclick="toggleScheduleForm(false)">Batal</button></div>
+    </form>
+    <div id="scheduleEmpty" class="empty-state" style="display:none">Belum ada jadwal. Tekan “Tambah jadwal” untuk membuat jadwal pertamamu.</div>
+    <table class="table"><thead><tr><th>Waktu</th><th>Kegiatan</th><th>Frekuensi / tanggal</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="scheduleRows"></tbody></table>
+  </div>
+</section>
+
+
+<section class="page" id="activity">
+  <h1>Peta & Lokasi</h1><div class="subtitle">Rekam jalur aktivitas menggunakan GPS. Izinkan akses lokasi saat diminta.</div>
+  <div class="grid3" style="margin-bottom:14px">
+    <div class="card"><div class="label">Jarak tempuh</div><div class="stat"><span id="trackDistance">0.00</span> <small>km</small></div><p class="label" style="margin-top:4px"><span id="trackMeters">0</span> meter</p></div>
+    <div class="card"><div class="label">Durasi</div><div class="stat" id="trackDuration">00:00:00</div></div>
+    <div class="card"><div class="label">Kecepatan rata-rata</div><div class="stat"><span id="trackSpeed">0.0</span> <small>km/jam</small></div></div>
+    <div class="card"><div class="label">Perkiraan kalori terbakar</div><div class="stat"><span id="trackCalories">0</span> <small>kkal</small></div><p class="label" style="margin-top:4px">Estimasi, bukan pengukuran medis</p></div>
+  </div>
+  <div class="card" style="margin-bottom:14px"><h2>Pengaturan estimasi kalori</h2><div class="toolbar" style="align-items:end"><div class="field" style="min-width:150px;margin:0"><label for="trackWeight">Berat badan (kg)</label><input id="trackWeight" type="number" min="20" max="300" value="60" oninput="updateTrackStats()"></div><div class="field" style="min-width:190px;margin:0"><label for="trackType">Jenis aktivitas</label><select id="trackType" onchange="updateTrackStats()"><option value="3.5">Jalan santai</option><option value="4.3">Jalan cepat</option><option value="8.3">Lari</option><option value="6.8">Bersepeda</option></select></div></div><p class="label">Kalori diperkirakan dari berat badan, durasi, dan jenis aktivitas yang dipilih.</p></div>
+  <div class="card">
+    <div class="toolbar"><button class="btn primary" id="trackStart" onclick="startTracking()">▶ Mulai aktivitas</button><button class="btn secondary" onclick="finishTracking()">■ Selesai</button><button class="btn" onclick="resetTracking()">↻ Reset</button><button class="btn" onclick="openGoogleMaps()">Buka Google Maps</button></div>
+    <p class="label" id="trackStatus">Aktivitas belum dimulai. GPS memerlukan izin lokasi dan koneksi internet.</p>
+    <div id="activityMap" role="img" aria-label="Peta jalur aktivitas GPS" style="height:420px;border-radius:12px;background:#edf3ef;overflow:hidden;display:grid;place-items:center;text-align:center;color:#718078">Peta akan muncul saat koneksi internet tersedia.</div><div class="toolbar" style="margin-top:10px;gap:14px;align-items:center"><span class="label">🟢 Garis hijau: jalur yang dilalui</span><span class="label">🚩 Titik mulai</span><span class="label">🏁 Titik selesai</span><span class="label">🔵 Posisi GPS terakhir</span></div>
+    <div class="label" id="trackPointSummary" style="margin-top:8px">Belum ada titik GPS yang direkam.</div>
+    <p class="label" style="margin-top:10px">Catatan: lokasi hanya direkam saat kamu menekan Mulai. Agar GPS berfungsi, buka file ini melalui HTTPS/localhost atau browser yang mengizinkan lokasi.</p>
+  </div>
+  <div class="card" style="margin-top:14px"><h2>Cari tempat</h2><div class="field"><label>Nama tempat atau alamat</label><input id="placeSearch" placeholder="Contoh: taman kota, rumah sakit"></div><button class="btn primary" onclick="searchPlace()">Cari di Google Maps</button></div>
+</section>
+<section class="page" id="music">
+  <h1>Musik & Relaksasi</h1><div class="subtitle">Putar musik dari perangkat atau cari musik relaksasi di YouTube.</div>
+  <div class="card"><h2>🎵 Musik dari perangkat</h2><div class="field"><label>Pilih file audio (MP3, WAV, dan lainnya)</label><input id="audioFile" type="file" accept="audio/*" onchange="loadAudioFile(event)"></div><audio id="audioPlayer" controls style="width:100%"></audio><p class="label" id="audioName">Belum ada file musik dipilih.</p></div>
+  <div class="card" style="margin-top:14px"><h2>🌿 Musik relaksasi YouTube</h2><div class="field"><label>Kata kunci musik</label><input id="youtubeQuery" value="musik relaksasi alam suara hujan" placeholder="Cari musik relaksasi"></div><button class="btn primary" onclick="searchRelaxMusic()">Cari di YouTube</button></div>
+</section>
+<section class="page" id="reminders">
+  <h1>Pengingat Aktivitas</h1><div class="subtitle">Tambah pengingat, tentukan waktu, hapus pengingat, dan coba notifikasi browser.</div>
+  <div class="card"><h2>Tambah pengingat</h2><form onsubmit="addActivityReminder(event)">
+    <div class="grid2"><div class="field"><label>Nama aktivitas</label><input id="reminderName" required maxlength="100" placeholder="Contoh: Minum air putih"></div><div class="field"><label>Waktu</label><input id="reminderTime" type="time" required></div></div>
+    <div class="toolbar"><button class="btn primary" type="submit">＋ Tambah pengingat</button><button class="btn secondary" type="button" onclick="testBrowserNotification()">Coba notifikasi browser</button></div>
+  </form><div id="reminderList" class="planned-list"></div><p class="label">Notifikasi browser mungkin memerlukan izin dan aplikasi tetap terbuka. Dukungan berbeda menurut browser dan perangkat.</p></div>
+</section>
+
+<section class="page" id="profile">
+  <h1>Profil & Pengaturan</h1><div class="subtitle">Kelola informasi profil dan preferensi aplikasi.</div>
+  <div class="grid2"><div class="card"><h2>Profil</h2><div class="field"><label>Nama</label><input id="nameInput" value=""></div><div class="field"><label>Gmail</label><input id="emailInput" type="email" placeholder="nama@gmail.com" autocomplete="email"></div><div class="field"><label>Target utama</label><select><option>Menjaga pola hidup sehat</option><option>Meningkatkan aktivitas</option><option>Mengelola nutrisi</option></select></div><button class="btn primary" onclick="saveProfile()">Simpan perubahan</button></div><div class="card"><h2>Preferensi</h2><label class="check"><input type="checkbox" checked> Pengingat minum</label><label class="check"><input type="checkbox" checked> Pengingat meal plan</label><label class="check"><input type="checkbox"> Ringkasan mingguan</label><label class="check"><input type="checkbox" checked> Tips kesehatan</label></div></div>
+</section>
+
+<footer>NutriPath-Tunna • Demo web aplikasi berdasarkan referensi desain PDF</footer>
+</main>
+</div>
+<div class="toast" id="toast"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script>
+const savedName=localStorage.getItem('nutripathName');
+const savedEmail=localStorage.getItem('nutripathEmail')||'';
+function loginUser(){
+ const n=document.getElementById('loginName').value.trim();
+ const email=document.getElementById('loginEmail').value.trim();
+ if(!n){toast('Masukkan nama terlebih dahulu');return}
+ if(email && !/^[^\s@]+@gmail\.com$/i.test(email)){toast('Masukkan Gmail yang valid, contoh: nama@gmail.com');return}
+ localStorage.setItem('nutripathName',n);
+ localStorage.setItem('nutripathEmail',email);
+ document.getElementById('topName').textContent=n;
+ document.getElementById('nameInput').value=n;
+ document.getElementById('emailInput').value=email;
+ document.getElementById('avatar').textContent=n.charAt(0).toUpperCase();
+ document.getElementById('loginScreen').style.display='none';
+}
+if(savedName){
+ document.getElementById('topName').textContent=savedName;
+ document.getElementById('nameInput').value=savedName;document.getElementById('avatar').textContent=savedName.charAt(0).toUpperCase();document.getElementById('emailInput').value=savedEmail;
+ document.getElementById('loginScreen').style.display='none';
+}
+const labels={dashboard:'Beranda',body:'My Body',nutrition:'My Nutrition',meal:'Meal Planner',habits:'Healthy Habits',ai:'Health AI',education:'Pusat Edukasi',schedule:'Jadwal',profile:'Profil & Pengaturan',activity:'Peta & Aktivitas',music:'Musik & Relaksasi',reminders:'Pengingat Aktivitas'};
+const nav=document.querySelectorAll('#nav button');
+function go(id){
+ document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+ document.getElementById(id).classList.add('active');
+ nav.forEach(x=>x.classList.toggle('active',x.dataset.page===id));
+ document.getElementById('crumb').textContent=labels[id];
+  if(id==='activity'){initActivityMap();setTimeout(()=>{if(activityMap)activityMap.invalidateSize()},100)}
+ window.scrollTo({top:0,behavior:'smooth'});
+}
+nav.forEach(x=>x.addEventListener('click',()=>go(x.dataset.page)));
+function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2200)}
+function calculateBMI(){
+ const w=+document.getElementById('weight').value||0,h=+document.getElementById('height').value||0;
+ const bmi=w/Math.pow(h/100,2);
+ document.getElementById('bmi').textContent='BMI '+(bmi?bmi.toFixed(1):'—');
+ document.getElementById('sumWeight').textContent=w.toFixed(1)+' kg';
+ document.getElementById('sumHeight').textContent=h+' cm';
+ document.getElementById('bmiText').textContent=bmi<18.5?'Di bawah rentang BMI umum.':bmi<25?'Dalam rentang normal berdasarkan perhitungan BMI.':bmi<30?'Di atas rentang BMI umum.':'Jauh di atas rentang BMI umum.';
+ document.getElementById('dashWeight').textContent=w.toFixed(1)+' kg';
+ toast('Data tubuh berhasil disimpan');
+}
+function saveProfile(){
+ const n=document.getElementById('nameInput').value.trim()||'Nayla';
+ const email=document.getElementById('emailInput').value.trim();
+ if(!/^[^\s@]+@gmail\.com$/i.test(email)){toast('Masukkan Gmail yang valid, contoh: nama@gmail.com');return}
+ document.getElementById('topName').textContent=n;document.getElementById('avatar').textContent=n.charAt(0).toUpperCase();
+ localStorage.setItem('nutripathName',n);localStorage.setItem('nutripathEmail',email);toast('Profil berhasil disimpan')
+}
+const educationMaterials={
+ nutrisi:['🥗 Nutrisi Seimbang','Nutrisi seimbang berarti mengonsumsi makanan yang beragam dan mencakup sumber karbohidrat, protein, sayur, buah, serta lemak dalam jumlah yang sesuai. Usahakan makan teratur dan pilih makanan yang beragam.'],
+ hidrasi:['💧 Hidrasi','Cairan membantu menjaga fungsi tubuh dan keseimbangan cairan. Biasakan minum secara teratur dan sesuaikan kebutuhan dengan aktivitas, cuaca, serta kondisi tubuh.'],
+ tidur:['😴 Tidur Sehat','Tidur yang cukup dan teratur membantu tubuh beristirahat dan mendukung konsentrasi. Buat jadwal tidur konsisten dan kurangi penggunaan gawai menjelang tidur.'],
+ aktivitas:['🏃 Aktivitas Fisik','Aktivitas fisik membantu menjaga kebugaran. Pilih aktivitas yang sesuai kemampuan, lakukan bertahap, dan imbangi dengan istirahat yang cukup.'],
+ mental:['🧠 Kesehatan Mental','Kenali stres dan lakukan kegiatan yang membantu relaksasi. Jaga hubungan dengan orang yang dipercaya dan cari bantuan tenaga profesional bila diperlukan.'],
+ pemeriksaan:['🩺 Pemeriksaan Rutin','Pemeriksaan kesehatan secara berkala membantu memantau kondisi tubuh dan menemukan masalah kesehatan lebih awal. Simpan hasil pemeriksaan untuk dibahas dengan tenaga kesehatan.'],
+ imt:['⚖️ Kategori Indeks Massa Tubuh (IMT)',`IMT dihitung dengan rumus berat badan (kg) dibagi tinggi badan (m) kuadrat. Kategori yang kamu masukkan:\n\n• BB Kurang (Underweight): IMT kurang dari 18,49 kg/m².\n• BB Ideal / Normal: IMT 18,5–24,9 kg/m².\n• BB Berlebih (Overweight): IMT 25–27 kg/m² (atau hingga 29,9 kg/m²).\n• Obesitas: IMT di atas 27 kg/m² (atau ≥ 30 kg/m²).\n\nCatatan: rentang tersebut memakai dua acuan berbeda sehingga ada tumpang tindih. IMT merupakan alat skrining, bukan diagnosis; penafsirannya dapat berbeda menurut usia dan acuan yang digunakan. Konsultasikan dengan tenaga kesehatan untuk penilaian pribadi.`]
+};
+function openEducation(key){
+ const item=educationMaterials[key]; if(!item)return;
+ document.getElementById('educationTitle').textContent=item[0];
+ document.getElementById('educationText').textContent=item[1];
+ document.getElementById('educationContent').style.display='block';
+ document.getElementById('educationContent').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+const nutritionFoods=[
+ {id:'coconut',name:'Air kelapa',cat:'Minuman & camilan',kcal:20,protein:.2,carb:4.5,fat:.1,fiber:0},
+ {id:'avocado',name:'Alpukat',cat:'Buah',kcal:160,protein:2,carb:8.5,fat:14.7,fiber:6.7},
+ {id:'rice',name:'Nasi putih',cat:'Makanan pokok',kcal:130,protein:2.7,carb:28,fat:.3,fiber:.4},
+ {id:'potato',name:'Kentang rebus',cat:'Makanan pokok',kcal:87,protein:1.9,carb:20.1,fat:.1,fiber:1.8},
+ {id:'egg',name:'Telur ayam',cat:'Lauk-pauk hewani',kcal:143,protein:12.6,carb:.7,fat:9.5,fiber:0},
+ {id:'chicken',name:'Ayam tanpa kulit',cat:'Lauk-pauk hewani',kcal:165,protein:31,carb:0,fat:3.6,fiber:0},
+ {id:'tempe',name:'Tempe',cat:'Lauk-pauk nabati',kcal:193,protein:19,fat:11,carb:9,fiber:4},
+ {id:'tofu',name:'Tahu',cat:'Lauk-pauk nabati',kcal:76,protein:8,carb:1.9,fat:4.8,fiber:.3},
+ {id:'spinach',name:'Bayam',cat:'Sayur',kcal:23,protein:2.9,carb:3.6,fat:.4,fiber:2.2},
+ {id:'carrot',name:'Wortel',cat:'Sayur',kcal:41,protein:.9,carb:9.6,fat:.2,fiber:2.8},
+ {id:'banana',name:'Pisang',cat:'Buah',kcal:89,protein:1.1,carb:22.8,fat:.3,fiber:2.6},
+ {id:'papaya',name:'Pepaya',cat:'Buah',kcal:43,protein:.5,carb:10.8,fat:.3,fiber:1.7},
+ {id:'yogurt',name:'Yogurt plain',cat:'Minuman & camilan',kcal:61,protein:3.5,carb:4.7,fat:3.3,fiber:0}
+];
+let nutritionCategory='Semua';
+let nutritionDate=new Date();
+function nutritionKey(){return 'nutripathNutrition_'+nutritionDate.toISOString().slice(0,10)}
+function nutritionJournal(){try{return JSON.parse(localStorage.getItem(nutritionKey())||'[]')}catch(e){return []}}
+function saveNutritionJournal(arr){localStorage.setItem(nutritionKey(),JSON.stringify(arr))}
+function fmtNum(n){return Number(n||0).toLocaleString('id-ID',{minimumFractionDigits:1,maximumFractionDigits:1})}
+function renderNutritionDate(){
+ const iso=nutritionDate.toISOString().slice(0,10);
+ document.getElementById('nutritionDateText').textContent=new Intl.DateTimeFormat('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(nutritionDate);
+ document.getElementById('nutritionDatePicker').value=iso;
+}
+function setNutritionDate(v){if(!v)return;nutritionDate=new Date(v+'T12:00:00');renderNutritionDate();renderFoodList();renderNutritionJournal()}
+function changeNutritionDate(days){nutritionDate.setDate(nutritionDate.getDate()+days);renderNutritionDate();renderFoodList();renderNutritionJournal()}
+function setFoodCategory(cat,btn){nutritionCategory=cat;document.querySelectorAll('#foodCategories .pill').forEach(x=>x.classList.remove('active'));btn.classList.add('active');renderFoodList()}
+function renderFoodList(){
+ const q=(document.getElementById('foodSearch').value||'').toLowerCase();
+ const list=nutritionFoods.filter(f=>(nutritionCategory==='Semua'||f.cat===nutritionCategory)&&f.name.toLowerCase().includes(q));
+ document.getElementById('foodList').innerHTML=list.length?list.map(f=>`<div class="food-row"><div class="food-info"><strong>${f.name}</strong><span class="food-cat">${f.cat}</span><small>${f.kcal} kkal · ${f.protein} g protein / 100 g</small></div><button class="add-food-btn" onclick="addFood('${f.id}')">＋ Tambah</button></div>`).join(''):'<div class="empty-journal">Makanan tidak ditemukan. Coba kata kunci lain atau tambahkan makanan sendiri.</div>';
+}
+function addFood(id){
+ const f=nutritionFoods.find(x=>x.id===id);if(!f)return;
+ const arr=nutritionJournal();arr.push({...f,entryId:Date.now()});saveNutritionJournal(arr);renderNutritionJournal();toast(f.name+' ditambahkan ke jurnal');
+}
+function removeFood(entryId){const arr=nutritionJournal().filter(x=>x.entryId!==entryId);saveNutritionJournal(arr);renderNutritionJournal();}
+function renderNutritionJournal(){
+ const arr=nutritionJournal();
+ const empty=document.getElementById('journalEmpty');const list=document.getElementById('journalList');
+ empty.style.display=arr.length?'none':'block';
+ list.innerHTML=arr.map((f,i)=>`<div class="food-row"><div class="food-info"><strong>${f.name}</strong><small>${f.cat} · ${f.kcal} kkal · ${f.protein} g protein</small></div><button class="icon-btn" onclick="removeFood(${f.entryId})" title="Hapus">×</button></div>`).join('');
+ const sums=arr.reduce((a,f)=>{a.kcal+=+f.kcal||0;a.protein+=+f.protein||0;a.carb+=+f.carb||0;a.fat+=+f.fat||0;a.fiber+=+f.fiber||0;return a},{kcal:0,protein:0,carb:0,fat:0,fiber:0});
+ document.getElementById('sumKcal').textContent=Math.round(sums.kcal)+' kcal';
+ document.getElementById('sumProtein').textContent=fmtNum(sums.protein)+' g';
+ document.getElementById('sumCarb').textContent=fmtNum(sums.carb)+' g';
+ document.getElementById('sumFat').textContent=fmtNum(sums.fat)+' g';
+ document.getElementById('sumFiber').textContent=fmtNum(sums.fiber)+' g';
+ document.getElementById('sumItems').textContent=arr.length;
+ renderDiversity(arr);
+}
+function renderDiversity(arr){
+ const cats=['Makanan pokok','Lauk-pauk hewani','Lauk-pauk nabati','Sayur','Buah','Minuman & camilan'];
+ const examples={
+  'Makanan pokok':'nasi, kentang, roti, jagung',
+  'Lauk-pauk hewani':'telur, ikan, ayam, daging',
+  'Lauk-pauk nabati':'tempe, tahu, kacang-kacangan',
+  'Sayur':'kangkung, bayam, wortel, brokoli',
+  'Buah':'pisang, pepaya, jeruk, jambu',
+  'Minuman & camilan':'air, teh, camilan'
+ };
+ document.getElementById('diversityList').innerHTML=cats.map(c=>{const count=arr.filter(x=>x.cat===c).length;return `<div class="diversity-row"><div><b>${c}</b><br><span>${examples[c]}</span></div><strong style="color:${count?'var(--green)':'#a0aaa5'}">${count?'✓ '+count:'−'}</strong></div>`}).join('');
+}
+function toggleCustomFood(){document.getElementById('customFoodBox').classList.toggle('show')}
+function addCustomFood(){
+ const name=document.getElementById('customFoodName').value.trim();const cat=document.getElementById('customFoodCat').value;const kcal=+document.getElementById('customFoodKcal').value;const protein=+document.getElementById('customFoodProtein').value||0;
+ if(!name||!Number.isFinite(kcal)||kcal<0){toast('Isi nama dan energi makanan terlebih dahulu');return}
+ const f={id:'custom_'+Date.now(),name,cat,kcal,protein,carb:0,fat:0,fiber:0,entryId:Date.now()};const arr=nutritionJournal();arr.push(f);saveNutritionJournal(arr);renderNutritionJournal();
+ document.getElementById('customFoodName').value='';document.getElementById('customFoodKcal').value='';document.getElementById('customFoodProtein').value='';document.getElementById('customFoodBox').classList.remove('show');toast(name+' ditambahkan ke jurnal');
+}
+renderNutritionDate();renderFoodList();renderNutritionJournal();
+function sendChat(){
+ const input=document.getElementById('chatInput'), q=input.value.trim();if(!q)return;
+ const chat=document.getElementById('chat');chat.innerHTML+=`<div class="msg me">${q}</div>`;
+ const answer=q.toLowerCase().includes('air')?'Coba catat asupan minum secara berkala dan sesuaikan kebutuhan cairan dengan kondisi tubuh serta aktivitasmu.':q.toLowerCase().includes('makan')?'Pilih makanan yang beragam dan seimbang, serta perhatikan porsi dan keteraturan waktu makan.':'Untuk pertanyaan kesehatan yang spesifik atau keluhan yang menetap, sebaiknya konsultasikan dengan tenaga kesehatan.';
+ setTimeout(()=>{chat.innerHTML+=`<div class="msg bot">${answer}</div>`;chat.scrollTop=chat.scrollHeight},350);input.value='';
+}
+document.getElementById('chatInput').addEventListener('keydown',e=>{if(e.key==='Enter')sendChat()});
+
+// Added interactive features based on the Meal Planner and Healthy Habits PDF references.
+const mealCatalog=[
+ {name:'Bubur nasi, telur rebus, dan tumis kangkung',desc:'Sarapan hangat yang lembut untuk lambung dan mudah disiapkan pagi hari.',tags:['Menu hemat','Menu keluarga'],kcal:330,protein:14,carb:44,fiber:'3,0',items:['beras','telur','kangkung']},
+ {name:'Oatmeal pisang dengan kacang tanah',desc:'Sarapan cepat saji tinggi serat, cocok untuk hari yang padat.',tags:['Tinggi serat','Mendukung aktivitas'],kcal:380,protein:13,carb:56,fiber:'7,0',items:['oatmeal','pisang','kacang tanah']},
+ {name:'Nasi, tempe, dan sayur bening',desc:'Menu rumahan ekonomis dengan protein nabati dan sayuran.',tags:['Menu hemat','Vegetarian','Menu keluarga'],kcal:420,protein:18,carb:62,fiber:'6,0',items:['beras','tempe','bayam','wortel']},
+ {name:'Ayam panggang, nasi, dan lalapan',desc:'Kombinasi protein dan sayuran untuk makan utama.',tags:['Protein beragam','Mendukung aktivitas'],kcal:510,protein:32,carb:58,fiber:'5,0',items:['ayam','beras','timun','tomat']},
+ {name:'Gado-gado dengan telur',desc:'Sayuran beragam dengan sumber protein dan saus kacang.',tags:['Tinggi serat','Vegetarian'],kcal:390,protein:17,carb:42,fiber:'8,0',items:['kangkung','kol','tauge','telur','kacang tanah']},
+ {name:'Sup tahu dan sayuran',desc:'Pilihan hangat dengan tahu, wortel, dan sayuran hijau.',tags:['Menu hemat','Vegetarian','Tinggi serat'],kcal:280,protein:16,carb:30,fiber:'6,0',items:['tahu','wortel','sawi','bawang']},
+ {name:'Ikan kukus, nasi, dan brokoli',desc:'Menu seimbang dengan protein ikan dan sayuran.',tags:['Protein beragam','Mendukung aktivitas'],kcal:460,protein:31,carb:52,fiber:'5,0',items:['ikan','beras','brokoli']},
+ {name:'Buah potong dan yogurt',desc:'Camilan sederhana untuk melengkapi asupan harian.',tags:['Tinggi serat','Menu hemat'],kcal:180,protein:7,carb:28,fiber:'4,0',items:['pisang','pepaya','yogurt']}
+];
+let mealFilter='Semua', mealDate=new Date(), habitDate=new Date();
+let mealPlans=JSON.parse(localStorage.getItem('nutriMealPlans')||'{}');
+let habitEntries=JSON.parse(localStorage.getItem('nutriHabitEntries')||'{}');
+const dateKey=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const dateLabel=d=>d.toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+function renderMealIdeas(){
+ const items=mealCatalog.filter(x=>mealFilter==='Semua'||x.tags.includes(mealFilter));
+ document.getElementById('mealCount').textContent=items.length;
+ document.getElementById('mealIdeas').innerHTML=items.map(x=>`<article class="pdf-meal-card"><div class="pdf-meal-tags">${x.tags.map(t=>`<span>${t}</span>`).join('')}</div><h3>${x.name}</h3><p>${x.desc}</p><div class="pdf-nutrients"><div><span>ENERGI</span><b>${x.kcal}</b></div><div><span>PROTEIN</span><b>${x.protein}</b></div><div><span>KARBO</span><b>${x.carb}</b></div><div><span>SERAT</span><b>${x.fiber}</b></div></div><p>Perkiraan per porsi: kkal, protein, karbohidrat, dan serat.</p><button class="btn primary" onclick="addMealPlan('${mealCatalog.indexOf(x)}')">＋ Tambah ke rencana</button></article>`).join('');
+}
+function filterMeal(cat,btn){mealFilter=cat;document.querySelectorAll('#mealCats .pill').forEach(b=>b.classList.toggle('active',b===btn));renderMealIdeas()}
+function shiftMealDate(n){mealDate.setDate(mealDate.getDate()+n);renderMealDate()}
+function setMealDate(v){if(v){mealDate=new Date(v+'T12:00:00');renderMealDate()}}
+function renderMealDate(){document.getElementById('mealDateTitle').textContent=dateKey(mealDate)===dateKey(new Date())?'Hari ini':mealDate.toLocaleDateString('id-ID',{weekday:'long'});document.getElementById('mealDateLabel').textContent=dateLabel(mealDate);document.getElementById('mealDatePicker').value=dateKey(mealDate);renderPlannedMeals()}
+function addMealPlan(i){const k=dateKey(mealDate);mealPlans[k]=mealPlans[k]||[];mealPlans[k].push(+i);localStorage.setItem('nutriMealPlans',JSON.stringify(mealPlans));renderPlannedMeals();toast('Menu ditambahkan ke rencana')}
+function removeMealPlan(i){const k=dateKey(mealDate);mealPlans[k].splice(i,1);localStorage.setItem('nutriMealPlans',JSON.stringify(mealPlans));renderPlannedMeals()}
+function renderPlannedMeals(){const k=dateKey(mealDate),arr=mealPlans[k]||[], box=document.getElementById('plannedMeals');document.getElementById('shoppingDateLabel').textContent='Daftar belanja untuk '+dateLabel(mealDate);if(!arr.length){box.innerHTML='<div class="empty-state">Belum ada menu untuk hari ini. Pilih ide menu di bawah, lalu tambahkan ke rencana.</div>';document.getElementById('shoppingList').className='empty-state';document.getElementById('shoppingList').textContent='Daftar belanja terisi otomatis setelah kamu menambahkan menu ke rencana.';return}box.innerHTML=arr.map((id,i)=>`<div class="planned-row"><div><b>${mealCatalog[id].name}</b><div class="label">${mealCatalog[id].kcal} kcal · ${mealCatalog[id].protein} g protein</div></div><button onclick="removeMealPlan(${i})">Hapus</button></div>`).join('');const things=[...new Set(arr.flatMap(id=>mealCatalog[id].items))];document.getElementById('shoppingList').className='';document.getElementById('shoppingList').innerHTML=things.map(t=>`<label class="check"><input type="checkbox"> ${t[0].toUpperCase()+t.slice(1)}</label>`).join('')}
+function habitData(){return habitEntries[dateKey(habitDate)]||{water:0,activity:0,sleep:'',note:''}}
+function shiftHabitDate(n){habitDate.setDate(habitDate.getDate()+n);renderHabitDate()}
+function setHabitDate(v){if(v){habitDate=new Date(v+'T12:00:00');renderHabitDate()}}
+function renderHabitDate(){document.getElementById('habitDateLabel').textContent=dateLabel(habitDate);document.getElementById('habitDatePicker').value=dateKey(habitDate);const d=habitData();document.getElementById('waterInput').value=d.water||'';document.getElementById('activityInput').value=d.activity||'';document.getElementById('sleepInput').value=d.sleep||'';document.getElementById('habitNote').value=d.note||'';renderHabitStats();renderHabitCalendar()}
+function saveHabitEntry(show=false){const d={water:Math.max(0,+document.getElementById('waterInput').value||0),activity:Math.max(0,+document.getElementById('activityInput').value||0),sleep:document.getElementById('sleepInput').value,note:document.getElementById('habitNote').value};habitEntries[dateKey(habitDate)]=d;localStorage.setItem('nutriHabitEntries',JSON.stringify(habitEntries));renderHabitStats();renderHabitCalendar();if(show)toast('Kebiasaan berhasil disimpan')}
+function addWater(n){document.getElementById('waterInput').value=(+document.getElementById('waterInput').value||0)+n;saveHabitEntry()}
+function resetWater(){document.getElementById('waterInput').value=0;saveHabitEntry()}
+function addActivity(n){document.getElementById('activityInput').value=(+document.getElementById('activityInput').value||0)+n;saveHabitEntry()}
+function resetActivity(){document.getElementById('activityInput').value=0;saveHabitEntry()}
+function renderHabitStats(){const last=[];for(let i=6;i>=0;i--){const d=new Date(habitDate);d.setDate(d.getDate()-i);last.push(habitEntries[dateKey(d)]||{water:0,activity:0,sleep:0})}const water=Math.round(last.reduce((a,x)=>a+(+x.water||0),0)/7),sleep=last.reduce((a,x)=>a+(+x.sleep||0),0)/7,act=Math.round(last.reduce((a,x)=>a+(+x.activity||0),0)/7);document.getElementById('avgWater').textContent=water?water.toLocaleString('id-ID')+' ml':'—';document.getElementById('avgSleep').textContent=sleep?sleep.toFixed(1)+' jam':'—';document.getElementById('avgActivity').textContent=act;document.getElementById('waterTotal').textContent=(+habitData().water||0).toLocaleString('id-ID')+' ml / 2,0 L';document.getElementById('waterChart').innerHTML=last.map((x,i)=>`<div class="pdf-water-bar" style="height:${Math.max(3,Math.min(100,(+x.water||0)/2000*100))}%"><span>${['−6','−5','−4','−3','−2','−1','Hari ini'][i]}</span></div>`).join('')}
+function renderHabitCalendar(){const box=document.getElementById('habitCalendar'),names=['MIN','SEN','SEL','RAB','KAM','JUM','SAB'];let out=names.map(n=>`<div class="day-name">${n}</div>`).join('');const end=new Date(habitDate);end.setDate(end.getDate()-27);for(let i=0;i<28;i++){const d=new Date(end);d.setDate(end.getDate()+i);const k=dateKey(d),v=habitEntries[k]||{},done=(+v.water>=2000)+(+v.activity>=30)+((+v.sleep)>=7);out+=`<button class="${k===dateKey(habitDate)?'selected ':''}${done?'done':''}" onclick="habitDate=new Date('${k}T12:00:00');renderHabitDate()" title="${v.note||''}">${d.getDate()}</button>`}box.innerHTML=out}
+
+// Jadwal kesehatan: bisa ditambah, diaktifkan/nonaktifkan, dihapus, dan tersimpan di browser.
+const defaultSchedules = [
+ {id:1,time:'07:00',activity:'Minum air',frequency:'Setiap hari',date:'',active:true},
+ {id:2,time:'12:00',activity:'Makan siang',frequency:'Setiap hari',date:'',active:true},
+ {id:3,time:'18:00',activity:'Jalan kaki',frequency:'Senin–Jumat',date:'',active:true}
+];
+let healthSchedules;
+try { const savedSchedules=localStorage.getItem('nutriHealthSchedules'); healthSchedules=savedSchedules===null?defaultSchedules:JSON.parse(savedSchedules); if(!Array.isArray(healthSchedules)) healthSchedules=defaultSchedules; }
+catch(e) { healthSchedules=defaultSchedules; }
+let scheduleEditingId=null;
+function escapeScheduleText(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function persistSchedules(){localStorage.setItem('nutriHealthSchedules',JSON.stringify(healthSchedules));}
+function toggleScheduleForm(show){const form=document.getElementById('scheduleForm');const shouldShow=show===undefined?form.style.display==='none':show;form.style.display=shouldShow?'block':'none';if(!shouldShow){form.reset();scheduleEditingId=null;document.getElementById('scheduleFormTitle').textContent='Tambah jadwal baru';}else{document.getElementById('scheduleTime').focus();}}
+function addSchedule(event){event.preventDefault();const wasEditing=scheduleEditingId!==null;const time=document.getElementById('scheduleTime').value,activity=document.getElementById('scheduleActivity').value.trim(),frequency=document.getElementById('scheduleFrequency').value,date=document.getElementById('scheduleDate').value;if(!time||!activity){toast('Lengkapi waktu dan kegiatan dulu');return;}if(wasEditing){const item=healthSchedules.find(x=>x.id===scheduleEditingId);if(item)Object.assign(item,{time,activity,frequency,date});}else{healthSchedules.push({id:Date.now(),time,activity,frequency,date,active:true});}persistSchedules();renderSchedules();toggleScheduleForm(false);toast(wasEditing?'Jadwal berhasil diperbarui':'Jadwal berhasil ditambahkan');}
+function editSchedule(id){const item=healthSchedules.find(x=>x.id===id);if(!item)return;scheduleEditingId=id;document.getElementById('scheduleTime').value=item.time;document.getElementById('scheduleActivity').value=item.activity;document.getElementById('scheduleFrequency').value=item.frequency;document.getElementById('scheduleDate').value=item.date||'';document.getElementById('scheduleFormTitle').textContent='Ubah jadwal';document.getElementById('scheduleForm').style.display='block';document.getElementById('scheduleTime').focus();}
+function toggleScheduleActive(id){const item=healthSchedules.find(x=>x.id===id);if(!item)return;item.active=!item.active;persistSchedules();renderSchedules();}
+function deleteSchedule(id){const item=healthSchedules.find(x=>x.id===id);if(!item)return;if(!confirm('Hapus jadwal “'+item.activity+'”?'))return;healthSchedules=healthSchedules.filter(x=>x.id!==id);persistSchedules();renderSchedules();toast('Jadwal dihapus');}
+function renderSchedules(){const rows=document.getElementById('scheduleRows'),empty=document.getElementById('scheduleEmpty');if(!rows||!empty)return;empty.style.display=healthSchedules.length?'none':'block';rows.innerHTML=healthSchedules.slice().sort((a,b)=>a.time.localeCompare(b.time)).map(item=>`<tr><td>${escapeScheduleText(item.time)}</td><td>${escapeScheduleText(item.activity)}</td><td>${escapeScheduleText(item.frequency)}${item.date?'<br><small>'+escapeScheduleText(item.date)+'</small>':''}</td><td><span class="tag" style="${item.active?'':'background:#f1f2f1;color:#758078'}">${item.active?'Aktif':'Nonaktif'}</span></td><td><div style="display:flex;gap:5px;flex-wrap:wrap"><button class="btn secondary" onclick="toggleScheduleActive(${item.id})">${item.active?'Nonaktifkan':'Aktifkan'}</button><button class="btn" onclick="editSchedule(${item.id})">Ubah</button><button class="btn" onclick="deleteSchedule(${item.id})">Hapus</button></div></td></tr>`).join('');}
+
+renderSchedules();
+renderMealIdeas();renderMealDate();renderHabitDate();
+
+</script>
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{});}
+// Peta dan pelacakan aktivitas
+let activityMap=null, activityLine=null, activityMarker=null, activityStartMarker=null, activityEndMarker=null, trackWatchId=null, trackPoints=[], trackStartedAt=null, trackTimer=null, trackFinished=false;
+function initActivityMap(){
+ const box=document.getElementById('activityMap'); if(!box||activityMap||!window.L)return;
+ box.innerHTML='';
+ activityMap=L.map('activityMap').setView([-0.9471,100.4172],13);
+ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(activityMap);
+ activityLine=L.polyline([],{color:'#176b52',weight:7,opacity:0.95,lineCap:'round',lineJoin:'round'}).addTo(activityMap);
+ L.control.scale({metric:true,imperial:false,position:'bottomleft'}).addTo(activityMap);
+}
+function haversine(a,b){const R=6371,rad=x=>x*Math.PI/180,dLat=rad(b.lat-a.lat),dLon=rad(b.lng-a.lng),q=Math.sin(dLat/2)**2+Math.cos(rad(a.lat))*Math.cos(rad(b.lat))*Math.sin(dLon/2)**2;return 2*R*Math.asin(Math.sqrt(q))}
+function updateTrackStats(){
+ let km=0;for(let i=1;i<trackPoints.length;i++)km+=haversine(trackPoints[i-1],trackPoints[i]);
+ const sec=trackStartedAt?Math.max(0,Math.floor(((trackFinished?trackEndedAt:Date.now())-trackStartedAt)/1000)):0;
+ document.getElementById('trackDistance').textContent=km.toFixed(2);
+ document.getElementById('trackMeters').textContent=Math.round(km*1000).toLocaleString('id-ID');
+ const weight=Math.max(0,Number(document.getElementById('trackWeight')?.value)||60);
+ const met=Math.max(0,Number(document.getElementById('trackType')?.value)||3.5);
+ document.getElementById('trackCalories').textContent=Math.round(met*weight*(sec/3600)).toLocaleString('id-ID');
+ document.getElementById('trackDuration').textContent=[Math.floor(sec/3600),Math.floor(sec%3600/60),sec%60].map(n=>String(n).padStart(2,'0')).join(':');
+ document.getElementById('trackSpeed').textContent=sec>0?(km/(sec/3600)).toFixed(1):'0.0';
+}
+function startTracking(){
+ if(!navigator.geolocation){toast('Browser ini tidak mendukung GPS');return}
+ if(trackWatchId!==null){toast('Aktivitas sedang berjalan');return}
+ if(trackFinished){resetTracking()}
+ trackStartedAt=trackStartedAt||Date.now();trackFinished=false;
+ document.getElementById('trackStatus').textContent='Mencari lokasi GPS…';
+ trackWatchId=navigator.geolocation.watchPosition(pos=>{
+  const p={lat:pos.coords.latitude,lng:pos.coords.longitude};
+  if(!trackPoints.length||haversine(trackPoints[trackPoints.length-1],p)>0.003){trackPoints.push(p)}
+  initActivityMap();
+  if(activityMap){
+   const latlngs=trackPoints.map(x=>[x.lat,x.lng]);
+   activityLine.setLatLngs(latlngs);
+   if(!activityStartMarker){activityStartMarker=L.marker(latlngs[0]).addTo(activityMap).bindPopup('🚩 Titik mulai');}
+   if(!activityMarker)activityMarker=L.circleMarker([p.lat,p.lng],{radius:8,color:'#ffffff',weight:3,fillColor:'#2678e8',fillOpacity:1}).addTo(activityMap).bindPopup('📍 Lokasi sekarang');
+   else activityMarker.setLatLng([p.lat,p.lng]);
+   if(trackFinished){if(!activityEndMarker)activityEndMarker=L.marker([p.lat,p.lng]).addTo(activityMap).bindPopup('🏁 Titik selesai');else activityEndMarker.setLatLng([p.lat,p.lng]);}
+   if(latlngs.length>1)activityMap.fitBounds(activityLine.getBounds(),{padding:[28,28],maxZoom:17});else activityMap.setView([p.lat,p.lng],17);
+  }
+  const pointSummary=document.getElementById('trackPointSummary');
+  if(pointSummary)pointSummary.textContent='Titik GPS terekam: '+trackPoints.length+' • Jalur akan mengikuti posisi GPS selama aktivitas berlangsung.';
+  document.getElementById('trackStatus').textContent='GPS aktif — garis hijau menunjukkan jalur yang sudah kamu lalui. Peta menyesuaikan agar jalur terlihat.';
+  updateTrackStats();
+ },err=>{document.getElementById('trackStatus').textContent='Lokasi tidak tersedia: '+err.message+'. Periksa izin GPS dan koneksi.';if(trackWatchId!==null){navigator.geolocation.clearWatch(trackWatchId);trackWatchId=null}}, {enableHighAccuracy:true,maximumAge:2000,timeout:15000});
+ if(trackTimer)clearInterval(trackTimer);trackTimer=setInterval(updateTrackStats,1000);
+}
+let trackEndedAt=0;
+function finishTracking(){
+ if(trackWatchId!==null)navigator.geolocation.clearWatch(trackWatchId);
+ trackWatchId=null;
+ if(trackTimer)clearInterval(trackTimer);
+ trackTimer=null;
+ if(!trackStartedAt){toast('Mulai aktivitas terlebih dahulu');return}
+ trackFinished=true;
+ trackEndedAt=Date.now();
+ if(trackPoints.length&&activityMap){
+  const last=trackPoints[trackPoints.length-1],endLatLng=[last.lat,last.lng];
+  if(activityEndMarker)activityMap.removeLayer(activityEndMarker);
+  activityEndMarker=L.marker(endLatLng).addTo(activityMap).bindPopup('🏁 Titik selesai').openPopup();
+  if(activityMarker)activityMarker.setLatLng(endLatLng);
+  if(trackPoints.length>1)activityMap.fitBounds(activityLine.getBounds(),{padding:[28,28],maxZoom:17});
+  else activityMap.setView(endLatLng,17);
+ }
+ updateTrackStats();
+ document.getElementById('trackStatus').textContent='Aktivitas selesai! Jalur hijau menunjukkan rute yang terekam, 🚩 adalah titik mulai, dan 🏁 adalah titik selesai.';
+ const pointSummary=document.getElementById('trackPointSummary');
+ if(pointSummary)pointSummary.textContent='Total titik GPS terekam: '+trackPoints.length+'. Ringkasan jarak, durasi, kecepatan, dan estimasi kalori sudah diperbarui.';
+}
+function resetTracking(){if(trackWatchId!==null)navigator.geolocation.clearWatch(trackWatchId);trackWatchId=null;if(trackTimer)clearInterval(trackTimer);trackTimer=null;trackPoints=[];trackStartedAt=null;trackFinished=false;trackEndedAt=0;if(activityLine)activityLine.setLatLngs([]);[activityMarker,activityStartMarker,activityEndMarker].forEach(m=>{if(m&&activityMap)activityMap.removeLayer(m)});activityMarker=null;activityStartMarker=null;activityEndMarker=null;updateTrackStats();const pointSummary=document.getElementById('trackPointSummary');if(pointSummary)pointSummary.textContent='Belum ada titik GPS yang direkam.';document.getElementById('trackStatus').textContent='Aktivitas di-reset. Tekan Mulai untuk merekam jalur baru.'}
+function openGoogleMaps(){const p=trackPoints[trackPoints.length-1];window.open(p?`https://www.google.com/maps/@${p.lat},${p.lng},16z`:'https://maps.google.com','_blank','noopener')}
+function searchPlace(){const q=document.getElementById('placeSearch').value.trim();if(q)window.open('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(q),'_blank','noopener')}
+function loadAudioFile(e){const f=e.target.files&&e.target.files[0];if(!f)return;const player=document.getElementById('audioPlayer');if(player.dataset.url)URL.revokeObjectURL(player.dataset.url);const url=URL.createObjectURL(f);player.dataset.url=url;player.src=url;document.getElementById('audioName').textContent=f.name;player.load()}
+function searchRelaxMusic(){const q=document.getElementById('youtubeQuery').value.trim()||'musik relaksasi';window.open('https://www.youtube.com/results?search_query='+encodeURIComponent(q),'_blank','noopener')}
+let activityReminders=[];try{activityReminders=JSON.parse(localStorage.getItem('nutripathActivityReminders')||'[]')}catch(e){}
+function saveActivityReminders(){localStorage.setItem('nutripathActivityReminders',JSON.stringify(activityReminders))}
+function renderActivityReminders(){const box=document.getElementById('reminderList');if(!box)return;box.innerHTML=activityReminders.length?activityReminders.sort((a,b)=>a.time.localeCompare(b.time)).map(r=>`<div class="planned-row"><span><b>${escapeScheduleText(r.time)}</b> — ${escapeScheduleText(r.name)}</span><button onclick="deleteActivityReminder(${r.id})">Hapus</button></div>`).join(''):'<div class="empty-state">Belum ada pengingat.</div>'}
+function addActivityReminder(e){e.preventDefault();const name=document.getElementById('reminderName').value.trim(),time=document.getElementById('reminderTime').value;if(!name||!time)return;activityReminders.push({id:Date.now(),name,time,lastNotified:''});saveActivityReminders();renderActivityReminders();e.target.reset();toast('Pengingat ditambahkan')}
+function deleteActivityReminder(id){activityReminders=activityReminders.filter(r=>r.id!==id);saveActivityReminders();renderActivityReminders();toast('Pengingat dihapus')}
+async function testBrowserNotification(){if(!('Notification'in window)){toast('Browser tidak mendukung notifikasi');return}try{let p=Notification.permission;if(p==='default')p=await Notification.requestPermission();if(p==='granted')new Notification('NutriPath-Tunna',{body:'Notifikasi pengingat berhasil dicoba!'});else toast('Izin notifikasi tidak diberikan')}catch(e){toast('Notifikasi tidak tersedia pada konteks file ini')}}
+function checkActivityReminders(){if(!('Notification'in window)||Notification.permission!=='granted')return;const now=new Date(),time=now.toTimeString().slice(0,5),day=now.toISOString().slice(0,10);activityReminders.forEach(r=>{if(r.time===time&&r.lastNotified!==day){new Notification('Pengingat Aktivitas',{body:r.name});r.lastNotified=day;saveActivityReminders()}})}
+setInterval(checkActivityReminders,20000);renderActivityReminders();
+
+</script></body>
+</html>
